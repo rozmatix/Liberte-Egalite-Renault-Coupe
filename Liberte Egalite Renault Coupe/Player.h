@@ -21,8 +21,10 @@ public:
     float speed = 200.0f;
     int current_hp = 100;
 
-private:
     Sprite* sprite = nullptr;
+
+private:
+
     int max_hp = 100;
     bool invincible = false;
     float invincibleTimer = 0.0f;

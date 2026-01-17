@@ -4,25 +4,29 @@
 #include "GuiScene.h"
 #include "Gameplay.h"
 #include "GuiLabel.h"
+#include "SaveManager.h"
+
+
 
 class MenuState : public GameState
 {
 public:
-    MenuState(GuiRenderer* guiRenderer, GuiScene* guiScene);
-
-    void HandleInput(bool keyState[]) override;
-    void Update(float dt) override;
-    void Draw() override;
-    bool IsActive() const;
-
-
+    MenuState(Gameplay* game, GuiRenderer* guiRenderer, GuiScene* guiScene);
+    virtual void HandleInput(bool keyState[]) override;
+    virtual void Update(float dt) override;
+    virtual void Draw() override;
+    virtual bool IsActive() const override;
 
 private:
     GuiRenderer* guiRenderer;
     GuiScene* guiScene;
+    Gameplay* game;
 
-    GuiLabel* titleLabel;
-    GuiLabel* startLabel;
+    GuiLabel* titleLabel = nullptr;
+    GuiLabel* startLabel = nullptr;
+
     bool active = true;
     bool startGame = false;
+
+    bool saveExists = false;
 };
