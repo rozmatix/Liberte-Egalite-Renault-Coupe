@@ -13,11 +13,12 @@ MenuState::MenuState(Gameplay* game, GuiRenderer* guiRenderer, GuiScene* guiScen
     saveExists = SaveManager::Load(sd);
 
     if (saveExists)
-        startLabel = new GuiLabel("Press C to Continue", { 550, 500 });
-    else
-        startLabel = new GuiLabel("Press ENTER to Start", { 550, 500 });
+        continueLabel = new GuiLabel("Press C to Continue", { 550, 600 });
+
+    startLabel = new GuiLabel("Press ENTER to Start", { 550, 500 });
 
     guiScene->labels.push_back(startLabel);
+    guiScene->labels.push_back(continueLabel);
 }
 
 void MenuState::HandleInput(bool keyState[])

@@ -24,6 +24,7 @@ private:
 
     GuiLabel* titleLabel = nullptr;
     GuiLabel* startLabel = nullptr;
+    GuiLabel* continueLabel = nullptr;
 
     bool active = true;
     bool startGame = false;
