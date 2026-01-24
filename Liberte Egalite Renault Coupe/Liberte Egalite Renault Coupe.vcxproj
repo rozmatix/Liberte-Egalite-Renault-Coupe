@@ -111,14 +111,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\nejc\Documents\json-develop\include;C:\Users\nejc\Documents\SDL\SDL3_image-3.2.4\include;C:\Users\nejc\Documents\SDL\include;C:\Users\nejc\Documents\SDL\SDL3_ttf-devel-3.2.2-VC\SDL3_ttf-3.2.2\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\nejc\Documents\json-develop\include;C:\Users\nejc\Documents\SDL\SDL3_image-3.2.4\include;C:\Users\nejc\Documents\SDL\include;C:\Users\nejc\Documents\SDL\SDL3_ttf-devel-3.2.2-VC\SDL3_ttf-3.2.2\include;C:\Users\nejc\Documents\SDL\SDL3_mixer\include</AdditionalIncludeDirectories>
       <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\nejc\Documents\SDL\SDL3_image-3.2.4\lib\x64;C:\Users\nejc\Documents\SDL\lib\x64;C:\Users\nejc\Documents\SDL\SDL3_ttf-devel-3.2.2-VC\SDL3_ttf-3.2.2\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL3.lib;SDL3_Image.lib;SDL3_ttf.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\nejc\Documents\SDL\SDL3_image-3.2.4\lib\x64;C:\Users\nejc\Documents\SDL\lib\x64;C:\Users\nejc\Documents\SDL\SDL3_ttf-devel-3.2.2-VC\SDL3_ttf-3.2.2\lib\x64;C:\Users\nejc\Documents\SDL\SDL3_mixer\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;SDL3_Image.lib;SDL3_ttf.lib;SDL3_mixer.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,14 +130,14 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\nejc\Documents\json-develop\include;C:\Users\nejc\Documents\SDL\SDL3_image-3.2.4\include;C:\Users\nejc\Documents\SDL\include;C:\Users\nejc\Documents\SDL\SDL3_ttf-devel-3.2.2-VC\SDL3_ttf-3.2.2\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\nejc\Documents\json-develop\include;C:\Users\nejc\Documents\SDL\SDL3_image-3.2.4\include;C:\Users\nejc\Documents\SDL\include;C:\Users\nejc\Documents\SDL\SDL3_ttf-devel-3.2.2-VC\SDL3_ttf-3.2.2\include;C:\Users\nejc\Documents\SDL\SDL3_mixer\include</AdditionalIncludeDirectories>
       <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\nejc\Documents\SDL\SDL3_image-3.2.4\lib\x64;C:\Users\nejc\Documents\SDL\lib\x64;C:\Users\nejc\Documents\SDL\SDL3_ttf-devel-3.2.2-VC\SDL3_ttf-3.2.2\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL3.lib;SDL3_Image.lib;SDL3_ttf.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\nejc\Documents\SDL\SDL3_image-3.2.4\lib\x64;C:\Users\nejc\Documents\SDL\lib\x64;C:\Users\nejc\Documents\SDL\SDL3_ttf-devel-3.2.2-VC\SDL3_ttf-3.2.2\lib\x64;C:\Users\nejc\Documents\SDL\SDL3_mixer\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;SDL3_Image.lib;SDL3_ttf.lib;SDL3_mixer.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -153,6 +153,7 @@
     <ClCompile Include="SaveManager.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SimpleColider.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="SpriteBatch.cpp" />
   </ItemGroup>
@@ -169,6 +170,7 @@
     <ClInclude Include="SaveManager.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SimpleColider.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="SpriteBatch.h" />
     <ClInclude Include="Vector2.h" />

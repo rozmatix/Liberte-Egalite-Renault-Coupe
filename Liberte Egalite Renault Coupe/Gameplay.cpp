@@ -5,12 +5,27 @@
 #include <string>
 #include <sstream>
 #include "nlohmann/json.hpp"
+#include "SoundManager.h"
 using json = nlohmann::json;
 
 bool Gameplay::Init()
 {
     if (!renderer.Init("SDL3 Game", 1500, 1000))
         return false;
+
+    // Initialize sound manager
+    if (!SoundManager::Instance().Init())
+    {
+        std::cerr << "SoundManager failed to initialize\n";
+        return false;
+    }
+
+    // Load sounds and music
+    SoundManager::Instance().LoadWav("crash", "car-crash-sound.wav");
+    SoundManager::Instance().LoadWav("revolution", "revolution.wav");
+
+// REMOVE this line: it starts gameplay music while menu is active
+    // SoundManager::Instance().PlayMusic("revolution", -1);
 
     SDL_Texture* texture = IMG_LoadTexture(renderer.renderer, "texture.png");
     if (!texture) {
@@ -98,7 +113,6 @@ void Gameplay::LoadSpritesFromJSON(const std::string& jsonFile, SDL_Texture* tex
 
             std::string name = frame.value("filename", "unknown");
 
-
             if (!texture) {
                 std::cerr << "Texture is null!" << std::endl;
                 continue;
@@ -113,7 +127,6 @@ void Gameplay::LoadSpritesFromJSON(const std::string& jsonFile, SDL_Texture* tex
             s->position = Vector2(startX, startY);
             s->angle = 0.0f;
             sprites.push_back(s);
-
 
             startX += offsetX;
         }
@@ -181,10 +194,14 @@ void Gameplay::Update(float dt, bool keyState[])
         if (Colider.DetectCollison(*scene.player, e))
         {
             scene.AddAction([this, &e]()
+            {
+                const bool tookDamage = scene.player->Damage(20);
+                e.Damage(20);
+                if (tookDamage)
                 {
-                    scene.player->Damage(20);
-                    e.Damage(20);
-                });
+                    OnPlayerEnemyCollision(); // play crash sound only when player actually took damage
+                }
+            });
         }
     }
 
@@ -207,4 +224,11 @@ void Gameplay::Draw()
     scene.Draw(renderer.spriteBatch);
     guiScene.Draw(guiRenderer);
     renderer.Present();
+}
+
+// Add this method implementation to resolve the unresolved external symbol.
+void Gameplay::OnPlayerEnemyCollision()
+{
+    // Play the crash sound on collision
+    SoundManager::Instance().PlaySound("crash");
 }

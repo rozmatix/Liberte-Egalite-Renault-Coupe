@@ -33,7 +33,10 @@ public:
 
     float gameTime = 0.0f;
 
-    Player* player() const { return scene.player; }
+    Player* const player() const { return scene.player; }
+
+    // Expose collision callback (call from SimpleColider or Gameplay::Update)
+    void OnPlayerEnemyCollision();
 
     // Fill SaveData from current gameplay state
     void FillSaveData(SaveData& out) const

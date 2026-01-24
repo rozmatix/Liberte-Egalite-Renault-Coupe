@@ -41,15 +41,16 @@ void Player::Draw(SpriteBatch* batch)
         batch->Add(sprite);
 }
 
-void Player::Damage(int dmg)
+bool Player::Damage(int dmg)
 {
-    if (invincible) return;
+    if (invincible) return false;
 
     current_hp -= dmg;
     if (current_hp < 0) current_hp = 0;
 
     invincible = true;
     invincibleTimer = 1.0f;
+    return true;
 }
 
 void Player::Reset()
