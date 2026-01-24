@@ -2,7 +2,6 @@
 #include <SDL3/SDL.h>
 #include <string>
 #include <map>
-#include <vector>
 
 struct WavData
 {
@@ -15,6 +14,8 @@ struct SoundAsset
 {
     WavData wav;
     SDL_AudioStream* stream = nullptr; // converts to device format
+    bool loop = false;       // should this asset loop
+    bool bound = false;      // currently bound to device
 };
 
 class SoundManager
@@ -29,10 +30,17 @@ public:
     bool LoadWav(const std::string& name, const std::string& filepath);
 
     // Play a short sound effect (one-shot)
-    void PlaySound(const std::string& name, float gain = 1.0f);
+    void PlaySound(const std::string& name, float gain = 1.0f); // one-shot
 
     // Play music (non-loop for simplicity; call again to restart)
-    void PlayMusic(const std::string& name, float gain = 1.0f);
+    void PlayMusic(const std::string& name, float gain = 1.0f); // one-shot (we treat as long sound)
+
+    // Loop control
+    void StartLoop(const std::string& name, float gain = 1.0f); // bind and keep requeuing
+    void StopLoop(const std::string& name);
+
+    // Call once per frame to maintain loops
+    void Update();
 
     // Stop current audio output immediately
     void StopAll();

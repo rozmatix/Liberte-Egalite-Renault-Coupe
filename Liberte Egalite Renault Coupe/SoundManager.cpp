@@ -18,7 +18,7 @@ bool SoundManager::Init(int freq, SDL_AudioFormat format, int channels)
 
     SDL_AudioSpec desired{};
     desired.freq = freq;
-    desired.format = format;   // float32 is fine
+    desired.format = format;
     desired.channels = (Uint8)channels;
 
     device = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired);
@@ -77,7 +77,6 @@ bool SoundManager::LoadWav(const std::string& name, const std::string& filepath)
         return false;
     }
 
-    // Create a stream that converts from WAV format to device format
     asset.stream = SDL_CreateAudioStream(&asset.wav.spec, &deviceSpec);
     if (!asset.stream)
     {
@@ -90,37 +89,39 @@ bool SoundManager::LoadWav(const std::string& name, const std::string& filepath)
     return true;
 }
 
-void SoundManager::playAsset(SoundAsset& asset, float gain)
+void SoundManager::playAsset(SoundAsset& asset, float /*gain*/)
 {
     if (!asset.stream || !asset.wav.buffer || asset.wav.length == 0) return;
 
-    // Reset stream to a known state
+    // If already bound, unbind before reuse
+    if (asset.bound)
+    {
+        SDL_UnbindAudioStream(asset.stream);
+        asset.bound = false;
+    }
+
     SDL_ClearAudioStream(asset.stream);
 
-    // Optionally adjust gain by scaling samples if source is float32.
-    // For simplicity, let device master volume be default 1.0 (no direct gain API).
-    // If you need gain, convert data to float and scale before PutAudioStreamData.
-
-    // Push original WAV data into stream
     if (!SDL_PutAudioStreamData(asset.stream, asset.wav.buffer, asset.wav.length))
     {
         std::cerr << "SDL_PutAudioStreamData failed: " << SDL_GetError() << "\n";
         return;
     }
 
-    // Flush so the stream starts producing data
     if (!SDL_FlushAudioStream(asset.stream))
     {
         std::cerr << "SDL_FlushAudioStream failed: " << SDL_GetError() << "\n";
         return;
     }
 
-    // Bind stream to device
     if (!SDL_BindAudioStream(device, asset.stream))
     {
         std::cerr << "SDL_BindAudioStream failed: " << SDL_GetError() << "\n";
         return;
     }
+
+    asset.bound = true;
+    asset.loop = false; // one-shot by default
 }
 
 void SoundManager::PlaySound(const std::string& name, float /*gain*/)
@@ -143,19 +144,88 @@ void SoundManager::PlayMusic(const std::string& name, float /*gain*/)
         return;
     }
     playAsset(it->second, 1.0f);
-    // For looping, requeue on completion (poll playback state and restart).
-    // SDL3 doesn't auto-loop AudioStream; implement a simple loop if needed.
+}
+
+void SoundManager::StartLoop(const std::string& name, float /*gain*/)
+{
+    auto it = assets.find(name);
+    if (it == assets.end())
+    {
+        std::cerr << "Loop asset not found: " << name << "\n";
+        return;
+    }
+
+    SoundAsset& asset = it->second;
+    asset.loop = true;
+
+    // If not currently playing, start it
+    int available = SDL_GetAudioStreamAvailable(asset.stream);
+    bool needStart = !asset.bound || available <= 0;
+    if (needStart)
+    {
+        // queue once and bind
+        SDL_ClearAudioStream(asset.stream);
+        SDL_PutAudioStreamData(asset.stream, asset.wav.buffer, asset.wav.length);
+        SDL_FlushAudioStream(asset.stream);
+        if (!asset.bound)
+        {
+            SDL_BindAudioStream(device, asset.stream);
+            asset.bound = true;
+        }
+    }
+}
+
+void SoundManager::StopLoop(const std::string& name)
+{
+    auto it = assets.find(name);
+    if (it == assets.end()) return;
+
+    SoundAsset& asset = it->second;
+    asset.loop = false;
+
+    if (asset.bound)
+    {
+        SDL_UnbindAudioStream(asset.stream);
+        asset.bound = false;
+    }
+    SDL_ClearAudioStream(asset.stream);
+}
+
+void SoundManager::Update()
+{
+    // Maintain loops: if a looping asset has no data queued, requeue the buffer.
+    for (auto& kv : assets)
+    {
+        SoundAsset& asset = kv.second;
+        if (!asset.loop || !asset.stream) continue;
+
+        int available = SDL_GetAudioStreamAvailable(asset.stream);
+        if (available <= 0)
+        {
+            // requeue the original buffer
+            SDL_PutAudioStreamData(asset.stream, asset.wav.buffer, asset.wav.length);
+            SDL_FlushAudioStream(asset.stream);
+
+            if (!asset.bound)
+            {
+                SDL_BindAudioStream(device, asset.stream);
+                asset.bound = true;
+            }
+        }
+    }
 }
 
 void SoundManager::StopAll()
 {
-    // Unbind all streams from device (stops playback)
     for (auto& kv : assets)
     {
-        if (kv.second.stream)
+        SoundAsset& asset = kv.second;
+        asset.loop = false;
+        if (asset.bound)
         {
-            SDL_UnbindAudioStream(kv.second.stream);
-            SDL_ClearAudioStream(kv.second.stream); // SDL_ClearAudioStream is the correct SDL3 API
+            SDL_UnbindAudioStream(asset.stream);
+            asset.bound = false;
         }
+        SDL_ClearAudioStream(asset.stream);
     }
 }

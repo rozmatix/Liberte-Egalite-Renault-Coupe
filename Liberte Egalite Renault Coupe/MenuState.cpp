@@ -8,8 +8,11 @@ MenuState::MenuState(Gameplay* game, GuiRenderer* guiRenderer, GuiScene* guiScen
     : guiRenderer(guiRenderer), guiScene(guiScene), game(game)
 {
     // Load and play menu music
-    SoundManager::Instance().LoadWav("liberation", "liberation.wav");
-    SoundManager::Instance().PlayMusic("liberation", -1);
+    //SoundManager::Instance().LoadWav("liberation", "liberation.wav");
+    //SoundManager::Instance().PlayMusic("liberation");
+
+    // Load button sound effect
+    SoundManager::Instance().LoadWav("button", "button-heavy.wav");
 
     titleLabel = new GuiLabel("Liberte Egalite Renault Coupe", { 400, 300 });
     guiScene->labels.push_back(titleLabel);
@@ -28,33 +31,53 @@ MenuState::MenuState(Gameplay* game, GuiRenderer* guiRenderer, GuiScene* guiScen
 
 void MenuState::HandleInput(bool keyState[])
 {
-    if (keyState[SDL_SCANCODE_RETURN])
-        startGame = true;
+    const bool enterPressed = keyState[SDL_SCANCODE_RETURN] && !prevKeys[SDL_SCANCODE_RETURN];
+    const bool cPressed = keyState[SDL_SCANCODE_C] && !prevKeys[SDL_SCANCODE_C];
 
-    if (saveExists && keyState[SDL_SCANCODE_C])
+    if (!startRequested)
     {
-        // load and apply save immediately (game already initialized in main)
-        SaveData sd;
-        if (SaveManager::Load(sd))
+        if (enterPressed)
         {
-            if (game) game->LoadFromSave(sd);
-            startGame = true;
+            // Play button sound and request start; delay actual transition
+            SoundManager::Instance().PlaySound("button");
+            startRequested = true;
+            startDelay = kStartDelaySecs;
+        }
+
+        if (saveExists && cPressed)
+        {
+            // Play button sound and request start; load save during delay window
+            SoundManager::Instance().PlaySound("button");
+
+            SaveData sd;
+            if (SaveManager::Load(sd) && game)
+            {
+                game->LoadFromSave(sd);
+            }
+            startRequested = true;
+            startDelay = kStartDelaySecs;
         }
     }
+
+    // update prev keys at end
+    for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) prevKeys[i] = keyState[i];
 }
 
 void MenuState::Update(float dt)
 {
-    if (startGame)
+    if (startRequested)
     {
-        // Stop menu music when leaving menu
-        SoundManager::Instance().StopAll();
+        // Count down; let button sound start playing while menu remains active
+        startDelay -= dt;
+        if (startDelay <= 0.0f)
+        {
+            // Stop menu audio, start gameplay music, and leave menu
+            SoundManager::Instance().StopAll();
+            SoundManager::Instance().PlayMusic("revolution");
 
-        // Start gameplay music now (not in Gameplay::Init)
-        SoundManager::Instance().PlayMusic("revolution", -1);
-
-        guiScene->labels.clear();
-        active = false;
+            guiScene->labels.clear();
+            active = false;
+        }
     }
 }
 

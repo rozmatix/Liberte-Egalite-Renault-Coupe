@@ -22,10 +22,9 @@ bool Gameplay::Init()
 
     // Load sounds and music
     SoundManager::Instance().LoadWav("crash", "car-crash-sound.wav");
-    SoundManager::Instance().LoadWav("revolution", "revolution.wav");
-
-// REMOVE this line: it starts gameplay music while menu is active
-    // SoundManager::Instance().PlayMusic("revolution", -1);
+    SoundManager::Instance().LoadWav("engine", "engine.wav");
+    //SoundManager::Instance().LoadWav("revolution", "revolution.wav");
+    //SoundManager::Instance().PlayMusic("revolution", -1);
 
     SDL_Texture* texture = IMG_LoadTexture(renderer.renderer, "texture.png");
     if (!texture) {
@@ -204,6 +203,22 @@ void Gameplay::Update(float dt, bool keyState[])
             });
         }
     }
+
+    // Inside Update(float dt, bool keyState[]), after reading input:
+    const bool moving =
+        keyState[SDL_SCANCODE_W] ||
+        keyState[SDL_SCANCODE_A] ||
+        keyState[SDL_SCANCODE_S] ||
+        keyState[SDL_SCANCODE_D];
+
+    if (moving) {
+        SoundManager::Instance().StartLoop("engine");
+    } else {
+        SoundManager::Instance().StopLoop("engine");
+    }
+
+    // Keep loops running
+    SoundManager::Instance().Update();
 
     scene.Update(dt);
     CheckRules();
