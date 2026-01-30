@@ -1,9 +1,13 @@
 #include "Player.h"
 #include <iostream>
+#include <cmath>
+
+static inline float DegToRad(float deg) { return deg * 3.14159265358979323846f / 180.0f; }
 
 Player::Player()
 {
     position = Vector2(300, 300);
+    angle = -90.0f; // default heading up
 }
 
 void Player::Init(Sprite* spr)
@@ -13,13 +17,23 @@ void Player::Init(Sprite* spr)
 
 void Player::HandleInput(bool keyState[], float dt)
 {
-    if (keyState[SDL_SCANCODE_W]) position.y -= speed * dt;
-    if (keyState[SDL_SCANCODE_S]) position.y += speed * dt;
-    if (keyState[SDL_SCANCODE_A]) position.x -= speed * dt;
-    if (keyState[SDL_SCANCODE_D]) position.x += speed * dt;
+    // Rotate left/right (A/D)
+    if (keyState[SDL_SCANCODE_A]) angle -= turnSpeed * dt;
+    if (keyState[SDL_SCANCODE_D]) angle += turnSpeed * dt;
 
-    if (sprite)
-        sprite->position = position;
+    // Move forward/back (W/S) along current heading
+    float rad = DegToRad(angle);
+    Vector2 forward(std::cos(rad), std::sin(rad));
+
+    // Swap the direction to match expected screen-space movement
+    if (keyState[SDL_SCANCODE_W]) {
+        position.x -= forward.x * speed * dt; // forward
+        position.y -= forward.y * speed * dt;
+    }
+    if (keyState[SDL_SCANCODE_S]) {
+        position.x += forward.x * speed * dt; // backward
+        position.y += forward.y * speed * dt;
+    }
 }
 
 void Player::Update(float dt)
@@ -38,7 +52,11 @@ void Player::Update(float dt)
 void Player::Draw(SpriteBatch* batch)
 {
     if (sprite)
-        batch->Add(sprite);
+    {
+        // Visual offset so the texture points forward (up) relative to movement
+        const float visualAngleOffset = -90.0f;
+        batch->Add(sprite, position, angle + visualAngleOffset);
+    }
 }
 
 bool Player::Damage(int dmg)
@@ -58,6 +76,7 @@ void Player::Reset()
     current_hp = 100;
     max_hp = 100;
     position = Vector2(300, 300);
+    angle = -90.0f; // reset heading up
     invincible = false;
     invincibleTimer = 0.0f;
 }

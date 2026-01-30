@@ -1,9 +1,11 @@
 #include "Enemy.h"
-#include <iostream>
-#include "Player.h"
+#include "Player.h" // add this include so Player is a complete type
+#include <algorithm>
+#include <cmath>
 
 Enemy::Enemy()
 {
+    position = Vector2(100, 100);
 }
 
 void Enemy::Init(Sprite* spr)
@@ -11,24 +13,8 @@ void Enemy::Init(Sprite* spr)
     sprite = spr;
 }
 
-void Enemy::AI(Scene& scene, float dt)
-{
-    if (!scene.player) return;
-
-    Vector2 direction = scene.player->position - position;
-
-    float length = direction.Length();
-    if (length > 1.0f)
-    {
-
-        position = position + (direction.Normalized() * speed * dt);
-    }
-
-}
-
 void Enemy::Update(float dt)
 {
-
     if (invincible)
     {
         invincibleTimer -= dt;
@@ -38,33 +24,46 @@ void Enemy::Update(float dt)
             invincibleTimer = 0.0f;
         }
     }
-    if (sprite)
-        sprite->position = position;
+}
 
+void Enemy::AI(Scene& scene, float dt)
+{
+    if (scene.player)
+    {
+        Vector2 toPlayer(
+            scene.player->position.x - position.x,
+            scene.player->position.y - position.y
+        );
+
+        float lenSq = toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y;
+        if (lenSq > 0.0001f)
+        {
+            float len = std::sqrt(lenSq);
+            position.x += (toPlayer.x / len) * speed * dt;
+            position.y += (toPlayer.y / len) * speed * dt;
+        }
+    }
 }
 
 void Enemy::Draw(SpriteBatch* batch)
 {
     if (sprite)
-        batch->Add(sprite);
+        batch->Add(sprite, position, /*angle*/ 0.0f);
 }
 
 void Enemy::Damage(int dmg)
 {
-    if (invincible) return; // èe je invincible, ne naredi niè
-
+    if (invincible) return;
     current_hp -= dmg;
-    std::cout << current_hp << " sovraznik" << std::endl;
-    if (current_hp < 0) current_hp = 0;
-
+    current_hp = std::max(0, current_hp);
     invincible = true;
-    invincibleTimer = 1.0f; // 1 sekunda invincibility
+    invincibleTimer = 0.5f;
 }
 
 void Enemy::Reset()
 {
     current_hp = 40;
-    position = Vector2(600, 300);
+    position = Vector2(100, 100);
     invincible = false;
     invincibleTimer = 0.0f;
 }

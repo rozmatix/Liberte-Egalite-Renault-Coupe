@@ -35,13 +35,11 @@ public:
 
     Player* const player() const { return scene.player; }
 
-    // Expose collision callback (call from SimpleColider or Gameplay::Update)
     void OnPlayerEnemyCollision();
 
-    // Fill SaveData from current gameplay state
     void FillSaveData(SaveData& out) const
     {
-        out.SoundOn = true; // adapt if you add settings
+        out.SoundOn = true;
         if (player())
         {
             out.playerX = player()->position.x;
@@ -67,7 +65,6 @@ public:
         }
     }
 
-    // Apply SaveData to current gameplay state
     void LoadFromSave(const SaveData& in)
     {
         gameTime = in.gameTime;
@@ -76,19 +73,14 @@ public:
             player()->position.x = in.playerX;
             player()->position.y = in.playerY;
             player()->current_hp = in.playerHP;
-            if (player()->sprite)
-                player()->sprite->position = player()->position;
         }
 
-        // restore enemies
-        // resize scene.enemies to match saved count, default-construct new enemies if needed
         scene.enemies.resize(in.enemies.size());
         for (size_t i = 0; i < in.enemies.size(); ++i)
         {
             scene.enemies[i].position.x = in.enemies[i].x;
             scene.enemies[i].position.y = in.enemies[i].y;
             scene.enemies[i].current_hp = in.enemies[i].hp;
-            // Enemy::Draw / Update should sync sprite position if sprite set via Init
         }
     }
 

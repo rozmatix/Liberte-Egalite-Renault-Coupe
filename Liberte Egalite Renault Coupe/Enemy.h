@@ -11,7 +11,6 @@ class Enemy
 public:
     Enemy();
 
-
     void Init(Sprite* sprite);
     void Update(float dt);
     void Draw(SpriteBatch* batch);
@@ -24,7 +23,6 @@ public:
     int current_hp = 40;
 
 private:
-    
     Sprite* sprite = nullptr;
     bool invincible = false;
     float invincibleTimer = 0.0f;

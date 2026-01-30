@@ -39,6 +39,9 @@ bool Gameplay::Init()
         scene.enemies.push_back(Enemy());
         scene.enemies.back().position = Vector2(600, 300);
         scene.enemies.back().Init(sprites[0]);
+        scene.enemies.push_back(Enemy());
+        scene.enemies.back().position = Vector2(800, 600);
+        scene.enemies.back().Init(sprites[2]);
 
         scene.player = new Player();
         scene.player->Init(sprites[1]);
@@ -123,8 +126,7 @@ void Gameplay::LoadSpritesFromJSON(const std::string& jsonFile, SDL_Texture* tex
             }
 
             Sprite* s = new Sprite(name, texture, rect);
-            s->position = Vector2(startX, startY);
-            s->angle = 0.0f;
+            // Sprite no longer stores transform; do not set angle/position on Sprite
             sprites.push_back(s);
 
             startX += offsetX;

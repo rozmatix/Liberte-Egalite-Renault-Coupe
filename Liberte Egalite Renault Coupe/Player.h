@@ -20,7 +20,9 @@ public:
     void Reset();
 
     Vector2 position;
-    float speed = 200.0f;
+    float speed = 200.0f;     // forward/backward speed in pixels/sec
+    float turnSpeed = 180.0f; // degrees/sec for rotation
+    float angle = 0.0f;       // heading angle in degrees, 0 pointing right, positive clockwise
     int current_hp = 100;
     int max_hp = 100;
 
