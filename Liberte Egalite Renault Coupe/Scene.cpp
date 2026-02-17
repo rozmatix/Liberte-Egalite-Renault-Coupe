@@ -1,36 +1,27 @@
 #include "Scene.h"
-#include "Player.h"
-#include "Enemy.h"
 #include "SpriteBatch.h"
+#include <SDL3/SDL.h>
 
 void Scene::Update(float dt)
 {
-    if (player)
-        player->Update(dt);
-
-    for (auto e : enemies)
-        e.Update(dt);
+    if (player) player->Update(dt);
+    for (auto& e : enemies) e.Update(dt);
 }
 
 void Scene::Draw(SpriteBatch* batch)
 {
-    if (player)
-        player->Draw(batch);
+    if (!batch) return;
 
-    for (auto e : enemies)
-        e.Draw(batch);
-}
+    // XP orbs first so enemies/player render over them
+    for (const auto& orb : xpOrbs)
+        batch->AddCircle(orb.position, orb.radius, SDL_Color{ 0, 200, 0, 255 });
 
-void Scene::AddAction(const std::function<void()>& action)
-{
-    actions.push_back(action);
-}
+    for (auto& e : enemies) e.Draw(batch);
+    if (player) player->Draw(batch);
+    for (auto& b : bullets) b.Draw(batch);
 
-void Scene::ExecuteActions()
-{
-    for (auto& a : actions)
-        a();
-
-    actions.clear();
+    // Draw torches (airborne or ground hazard)
+    for (const auto& t : torches)
+        t.Draw(batch);
 }
 

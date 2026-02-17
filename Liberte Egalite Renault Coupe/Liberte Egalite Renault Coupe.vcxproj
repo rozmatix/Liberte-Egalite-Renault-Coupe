@@ -141,39 +141,53 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="EnemySpawner.cpp" />
     <ClCompile Include="Gameplay.cpp" />
     <ClCompile Include="GameRenderer.cpp" />
+    <ClCompile Include="GuiButton.cpp" />
     <ClCompile Include="GuiLabel.cpp" />
     <ClCompile Include="GuiRenderer.cpp" />
     <ClCompile Include="GuiScene.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MenuState.cpp" />
+    <ClCompile Include="PauseMenu.cpp" />
+    <ClCompile Include="PhysicsEngine.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PowerUpMenu.cpp" />
     <ClCompile Include="SaveManager.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="SimpleColider.cpp" />
     <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="SpriteBatch.cpp" />
+    <ClCompile Include="Torch.cpp" />
+    <ClCompile Include="WinLoseMenu.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bullet.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="EnemySpawner.h" />
     <ClInclude Include="Gameplay.h" />
     <ClInclude Include="GameRenderer.h" />
     <ClInclude Include="GameState.h" />
+    <ClInclude Include="GuiButton.h" />
     <ClInclude Include="GuiLabel.h" />
     <ClInclude Include="GuiRenderer.h" />
     <ClInclude Include="GuiScene.h" />
     <ClInclude Include="MenuState.h" />
+    <ClInclude Include="PauseMenu.h" />
+    <ClInclude Include="PhysicsEngine.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="PowerUpMenu.h" />
     <ClInclude Include="SaveManager.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="SimpleColider.h" />
     <ClInclude Include="SoundManager.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="SpriteBatch.h" />
+    <ClInclude Include="Torch.h" />
     <ClInclude Include="Vector2.h" />
+    <ClInclude Include="WinLoseMenu.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

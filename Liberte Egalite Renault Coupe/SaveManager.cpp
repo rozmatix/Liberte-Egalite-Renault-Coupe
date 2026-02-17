@@ -1,131 +1,124 @@
 #include "SaveManager.h"
-#include <SDL3/SDL.h>
+#include "nlohmann/json.hpp"
 #include <fstream>
-#include <iostream>
-#include <sstream>
-#include <cstdlib>
 
-static std::string JoinPath(const std::string& a, const std::string& b)
-{
-    if (a.empty()) return b;
-    if (a.back() == '/' || a.back() == '\\') return a + b;
-    return a + "/" + b;
-}
-
-std::string SaveManager::GetSaveFilePath(const std::string& filename)
-{
-    char* pref = SDL_GetPrefPath("rozmatix", "LiberteEgaliteRenaultCoupe");
-    std::string path;
-    if (pref)
-    {
-        path = JoinPath(pref, filename);
-        SDL_free(pref);
-    }
-    else
-    {
-        path = filename;
-    }
-    return path;
-}
+using json = nlohmann::json;
 
 bool SaveManager::Save(const SaveData& data)
 {
-    std::string path = GetSaveFilePath();
+    json j;
+    j["SoundOn"] = data.SoundOn;
+    j["PlayerX"] = data.playerX;
+    j["PlayerY"] = data.playerY;
+    j["PlayerHP"] = data.playerHP;
+    j["PlayerAngle"] = data.playerAngle; // new
+    j["GameTime"] = data.gameTime;
 
-    std::ofstream ofs(path, std::ios::trunc);
-    if (!ofs.is_open())
+    j["Enemies"] = json::array();
+    for (const auto& e : data.enemies)
     {
-        std::cerr << "SaveManager: failed to open " << path << " for writing\n";
-        return false;
+        j["Enemies"].push_back({
+            {"x", e.x},
+            {"y", e.y},
+            {"hp", e.hp},
+            {"type", e.type},
+            {"weapon", e.weapon},
+            {"angle", e.angle}
+            });
     }
 
-    ofs << "SoundOn=" << (data.SoundOn ? "1" : "0") << "\n";
-    ofs << "PlayerX=" << data.playerX << "\n";
-    ofs << "PlayerY=" << data.playerY << "\n";
-    ofs << "PlayerHP=" << data.playerHP << "\n";
-    ofs << "GameTime=" << data.gameTime << "\n";
-
-    // enemies
-    for (size_t i = 0; i < data.enemies.size(); ++i)
+    j["Bullets"] = json::array();
+    for (const auto& b : data.bullets)
     {
-        const auto& e = data.enemies[i];
-        ofs << "Enemy" << i << ".X=" << e.x << "\n";
-        ofs << "Enemy" << i << ".Y=" << e.y << "\n";
-        ofs << "Enemy" << i << ".HP=" << e.hp << "\n";
+        j["Bullets"].push_back({ {"x", b.x}, {"y", b.y}, {"dx", b.dx}, {"dy", b.dy} });
     }
 
-    ofs.close();
+    j["Torches"] = json::array();
+    for (const auto& t : data.torches)
+    {
+        j["Torches"].push_back({ {"x", t.x}, {"y", t.y}, {"lit", t.lit} });
+    }
+
+    j["XpOrbs"] = json::array();
+    for (const auto& xp : data.xpOrbs)
+    {
+        j["XpOrbs"].push_back({ {"x", xp.x}, {"y", xp.y}, {"xpAmount", xp.xpAmount} });
+    }
+
+    std::ofstream ofs("save.json");
+    if (!ofs.is_open()) return false;
+    ofs << j.dump(2);
     return true;
 }
 
 bool SaveManager::Load(SaveData& out)
 {
-    std::string path = GetSaveFilePath();
-    std::ifstream ifs(path);
-    if (!ifs.is_open())
+    std::ifstream ifs("save.json");
+    if (!ifs.is_open()) return false;
+
+    json j;
+    ifs >> j;
+
+    out.SoundOn = j.value("SoundOn", true);
+    out.playerX = j.value("PlayerX", 0.0f);
+    out.playerY = j.value("PlayerY", 0.0f);
+    out.playerHP = j.value("PlayerHP", 0);
+    out.playerAngle = j.value("PlayerAngle", -90.0f); // new
+    out.gameTime = j.value("GameTime", 0.0f);
+
+    out.enemies.clear();
+    if (j.contains("Enemies") && j["Enemies"].is_array())
     {
-        return false;
+        for (auto& je : j["Enemies"])
+        {
+            EnemySave es;
+            es.x = je.value("x", 0.0f);
+            es.y = je.value("y", 0.0f);
+            es.hp = je.value("hp", 0);
+            es.type = je.value("type", 0);
+            es.weapon = je.value("weapon", 0);
+            es.angle = je.value("angle", 0.0f);
+            out.enemies.push_back(es);
+        }
     }
 
-    std::string line;
-    while (std::getline(ifs, line))
+    out.bullets.clear();
+    if (j.contains("Bullets") && j["Bullets"].is_array())
     {
-        if (line.empty()) continue;
-        if (line[0] == '#') continue;
-
-        auto eq = line.find('=');
-        if (eq == std::string::npos) continue;
-
-        std::string key = line.substr(0, eq);
-        std::string val = line.substr(eq + 1);
-
-        if (key == "SoundOn")
+        for (auto& jb : j["Bullets"])
         {
-            out.SoundOn = (val == "1" || val == "true");
+            BulletSave bs;
+            bs.x = jb.value("x", 0.0f);
+            bs.y = jb.value("y", 0.0f);
+            bs.dx = jb.value("dx", 0.0f);
+            bs.dy = jb.value("dy", 0.0f);
+            out.bullets.push_back(bs);
         }
-        else if (key == "PlayerX")
-        {
-            out.playerX = static_cast<float>(std::atof(val.c_str()));
-        }
-        else if (key == "PlayerY")
-        {
-            out.playerY = static_cast<float>(std::atof(val.c_str()));
-        }
-        else if (key == "PlayerHP")
-        {
-            out.playerHP = std::atoi(val.c_str());
-        }
-        else if (key == "GameTime")
-        {
-            out.gameTime = static_cast<float>(std::atof(val.c_str()));
-        }
-        else if (key.rfind("Enemy", 0) == 0)
-        {
-            // format: Enemy{index}.{Field} e.g. Enemy0.X, Enemy1.HP
-            size_t dotPos = key.find('.');
-            if (dotPos == std::string::npos) continue;
+    }
 
-            std::string idxStr = key.substr(5, dotPos - 5);
-            int idx = std::atoi(idxStr.c_str());
-            if (idx < 0) continue;
+    out.torches.clear();
+    if (j.contains("Torches") && j["Torches"].is_array())
+    {
+        for (auto& jt : j["Torches"])
+        {
+            TorchSave ts;
+            ts.x = jt.value("x", 0.0f);
+            ts.y = jt.value("y", 0.0f);
+            ts.lit = jt.value("lit", false);
+            out.torches.push_back(ts);
+        }
+    }
 
-            std::string field = key.substr(dotPos + 1);
-
-            if ((size_t)idx >= out.enemies.size())
-                out.enemies.resize(idx + 1);
-
-            if (field == "X")
-            {
-                out.enemies[idx].x = static_cast<float>(std::atof(val.c_str()));
-            }
-            else if (field == "Y")
-            {
-                out.enemies[idx].y = static_cast<float>(std::atof(val.c_str()));
-            }
-            else if (field == "HP")
-            {
-                out.enemies[idx].hp = std::atoi(val.c_str());
-            }
+    out.xpOrbs.clear();
+    if (j.contains("XpOrbs") && j["XpOrbs"].is_array())
+    {
+        for (auto& jxp : j["XpOrbs"])
+        {
+            XpOrbSave xs;
+            xs.x = jxp.value("x", 0.0f);
+            xs.y = jxp.value("y", 0.0f);
+            xs.xpAmount = jxp.value("xpAmount", 0);
+            out.xpOrbs.push_back(xs);
         }
     }
 

@@ -1,23 +1,28 @@
 #pragma once
 #include <vector>
-#include <functional>
+#include "Vector2.h"
+#include "Player.h"
+#include "Enemy.h"
+#include "Bullet.h"
+#include "Torch.h"
 
-class Player;
-class Enemy;
+struct XpOrb
+{
+    Vector2 position;
+    float radius = 14.0f;
+    int xpAmount = 10;
+};
 
+class SpriteBatch;
 class Scene
 {
 public:
-    void Update(float dt);
-    void Draw(class SpriteBatch* batch);
-
-    // akcije (dodaj / odstrani po koncu frame-a)
-    void AddAction(const std::function<void()>& action);
-    void ExecuteActions();
-
     Player* player = nullptr;
     std::vector<Enemy> enemies;
+    std::vector<Bullet> bullets;
+    std::vector<Torch> torches;
+    std::vector<XpOrb> xpOrbs;
 
-private:
-    std::vector<std::function<void()>> actions;
+    void Update(float dt);
+    void Draw(SpriteBatch* batch);
 };

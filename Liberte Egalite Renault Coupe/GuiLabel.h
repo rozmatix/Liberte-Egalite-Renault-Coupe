@@ -13,8 +13,14 @@ public:
     void SetText(const std::string& txt);
     void Draw(GuiRenderer& renderer);
 
+    Vector2 position; // <-- Make position public
+
+    // Add public setter for text
+    void SetRawText(const std::string& txt) { text = txt; }
+    // Add public getter for text if needed
+    const std::string& GetRawText() const { return text; }
+
 private:
     std::string text;
-    Vector2 position;
 };
 

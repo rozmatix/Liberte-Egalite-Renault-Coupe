@@ -1,0 +1,18 @@
+{
+  "Bullets": [],
+  "Enemies": [],
+  "GameTime": 5.481785774230957,
+  "PlayerAngle": -27.17989730834961,
+  "PlayerHP": 12,
+  "PlayerX": 1581.34326171875,
+  "PlayerY": 949.0017700195313,
+  "SoundOn": true,
+  "Torches": [],
+  "XpOrbs": [
+    {
+      "x": 1009.7996215820313,
+      "xpAmount": 10,
+      "y": 982.9534912109375
+    }
+  ]
+}

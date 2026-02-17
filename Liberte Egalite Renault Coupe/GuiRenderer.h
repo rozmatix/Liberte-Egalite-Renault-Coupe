@@ -9,6 +9,16 @@ class GuiRenderer
 public:
     bool Init(SDL_Renderer* renderer);
     void DrawText(const std::string& text, Vector2 pos);
+    ~GuiRenderer() {
+        if (font) {
+            TTF_CloseFont(font);
+            font = nullptr;
+        }
+        // Do not call SDL_Quit here; lifecycle managed elsewhere
+        if (TTF_WasInit()) {
+            TTF_Quit();
+        }
+    }
 
     SDL_Renderer* renderer = nullptr;
 private:

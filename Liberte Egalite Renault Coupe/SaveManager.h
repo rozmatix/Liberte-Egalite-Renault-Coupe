@@ -1,34 +1,44 @@
 #pragma once
-#include <string>
 #include <vector>
+#include <string>
 
 struct EnemySave
 {
-    float x = 0.0f;
-    float y = 0.0f;
-    int hp = 0;
+    float x;
+    float y;
+    int   hp;
+
+    // serialized enums
+    int   type;      // EnemyType kot int
+    int   weapon;    // WeaponType kot int
+    float angle;     // smer sovražnika
 };
+
+struct BulletSave { float x, y, dx, dy; };
+struct TorchSave { float x, y; bool lit; };
+struct XpOrbSave { float x, y; int xpAmount; };
 
 struct SaveData
 {
     bool SoundOn = true;
+
     float playerX = 0.0f;
     float playerY = 0.0f;
-    int playerHP = 0;
+    int   playerHP = 0;
+
+    // New: persist player heading
+    float playerAngle = -90.0f;
+
     float gameTime = 0.0f;
 
     std::vector<EnemySave> enemies;
+    std::vector<BulletSave> bullets;
+    std::vector<TorchSave> torches;
+    std::vector<XpOrbSave> xpOrbs;
 };
 
-class SaveManager
+namespace SaveManager
 {
-public:
-    // Load returns true if file found and parsed
-    static bool Load(SaveData& out);
-
-    // Save returns true on success
-    static bool Save(const SaveData& data);
-
-    // Get the actual path used for debugging
-    static std::string GetSaveFilePath(const std::string& filename = "save.txt");
-};
+    bool Save(const SaveData& data);
+    bool Load(SaveData& out);
+}

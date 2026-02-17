@@ -45,6 +45,10 @@ void GameRenderer::Clear()
 {
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	SDL_RenderClear(renderer);
+	if (spriteBatch) {
+		delete spriteBatch;
+		spriteBatch = nullptr;
+	}
 	spriteBatch = new SpriteBatch(renderer);
 }
 

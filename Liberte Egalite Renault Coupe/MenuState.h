@@ -1,38 +1,47 @@
 #pragma once
-#include "GameState.h"
-#include "GuiRenderer.h"
-#include "GuiScene.h"
-#include "Gameplay.h"
-#include "GuiLabel.h"
-#include "SaveManager.h"
-#include <SDL3/SDL.h>
+#include "Vector2.h"
 
-class MenuState : public GameState
+class Gameplay;
+class GuiRenderer;
+class GuiScene;
+class GuiButton;
+
+class MenuState
 {
 public:
-    MenuState(Gameplay* game, GuiRenderer* guiRenderer, GuiScene* guiScene);
-    void HandleInput(bool keyState[]) override;
-    void Update(float dt) override;
-    void Draw() override;
-    bool IsActive() const override;
+    MenuState(Gameplay* gameplayPtr, GuiRenderer* guiRendererPtr, GuiScene* guiScenePtr);
+    ~MenuState();
+
+    void HandleInput(bool keyState[]);
+    void Update(float dt);
+    void Draw();
+
+    void Activate() { active = true; }
+    bool IsActive() const { return active; }
+
+    // Requests for main.cpp
+    bool IsNewGameRequested() const { return requestNewGame; }
+    void ClearNewGameRequest() { requestNewGame = false; }
+
+    bool IsDisposeRequested() const { return requestDispose; }
+    void ClearDisposeRequest() { requestDispose = false; }
+
+    void Reset() { active = true; }
 
 private:
-    GuiRenderer* guiRenderer;
-    GuiScene* guiScene;
-    Gameplay* game;
+    void StartNewGame();
+    void ContinueGame();
 
-    GuiLabel* titleLabel = nullptr;
-    GuiLabel* startLabel = nullptr;
-    GuiLabel* continueLabel = nullptr;
+    Gameplay* gameplay = nullptr;
+    GuiRenderer* guiRenderer = nullptr;
+    GuiScene* guiScene = nullptr;
+
+    GuiButton* btnNewGame = nullptr;
+    GuiButton* btnContinue = nullptr;
 
     bool active = true;
-    bool saveExists = false;
 
-    // Edge detection for keys
-    bool prevKeys[SDL_SCANCODE_COUNT] = { false };
-
-    // Start transition flow
-    bool startRequested = false;     // set when ENTER or C pressed
-    float startDelay = 0.0f;         // countdown delay before switching to gameplay
-    static constexpr float kStartDelaySecs = 0.20f; // 200 ms to let button sound play
+    // Added request flags
+    bool requestNewGame = false;
+    bool requestDispose = false;
 };

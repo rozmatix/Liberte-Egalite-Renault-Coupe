@@ -1,94 +1,92 @@
 #include "MenuState.h"
-#include <SDL3/SDL.h>
-#include "Gameplay.h"
+#include "GuiButton.h"
+#include "GuiRenderer.h"
+#include "GuiScene.h"
 #include "SaveManager.h"
-#include "SoundManager.h"
+#include "Gameplay.h"
+#include <SDL3/SDL.h>
+#include <filesystem>
 
-MenuState::MenuState(Gameplay* game, GuiRenderer* guiRenderer, GuiScene* guiScene)
-    : guiRenderer(guiRenderer), guiScene(guiScene), game(game)
+namespace
 {
-    // Load and play menu music
-    //SoundManager::Instance().LoadWav("liberation", "liberation.wav");
-    //SoundManager::Instance().PlayMusic("liberation");
+    bool HasSave()
+    {
+        return std::filesystem::exists("save.json");
+    }
+}
 
-    // Load button sound effect
-    SoundManager::Instance().LoadWav("button", "button-heavy.wav");
+MenuState::MenuState(Gameplay* gameplayPtr, GuiRenderer* guiRendererPtr, GuiScene* guiScenePtr)
+    : gameplay(gameplayPtr)
+    , guiRenderer(guiRendererPtr)
+    , guiScene(guiScenePtr)
+{
+    const Vector2 btnSize{ 300.0f, 80.0f };
+    const Vector2 center{ 1500.0f * 0.5f, 1000.0f * 0.5f };
 
-    titleLabel = new GuiLabel("Liberte Egalite Renault Coupe", { 400, 300 });
-    guiScene->labels.push_back(titleLabel);
+    btnNewGame = new GuiButton("Nova igra", Vector2(center.x - btnSize.x * 0.5f, center.y - 120.0f), btnSize);
+    btnContinue = new GuiButton("Nadaljuj", Vector2(center.x - btnSize.x * 0.5f, center.y + 20.0f), btnSize);
 
-    SaveData sd;
-    saveExists = SaveManager::Load(sd);
+    btnNewGame->SetOnClick([this]() { StartNewGame(); });
+    btnContinue->SetOnClick([this]() { ContinueGame(); });
 
-    if (saveExists)
-        continueLabel = new GuiLabel("Press C to Continue", { 550, 600 });
+    btnContinue->SetDisabled(!HasSave());
+}
 
-    startLabel = new GuiLabel("Press ENTER to Start", { 550, 500 });
-
-    guiScene->labels.push_back(startLabel);
-    if (continueLabel) guiScene->labels.push_back(continueLabel);
+MenuState::~MenuState()
+{
+    delete btnNewGame;
+    delete btnContinue;
 }
 
 void MenuState::HandleInput(bool keyState[])
 {
-    const bool enterPressed = keyState[SDL_SCANCODE_RETURN] && !prevKeys[SDL_SCANCODE_RETURN];
-    const bool cPressed = keyState[SDL_SCANCODE_C] && !prevKeys[SDL_SCANCODE_C];
-
-    if (!startRequested)
-    {
-        if (enterPressed)
-        {
-            // Play button sound and request start; delay actual transition
-            SoundManager::Instance().PlaySound("button");
-            startRequested = true;
-            startDelay = kStartDelaySecs;
-        }
-
-        if (saveExists && cPressed)
-        {
-            // Play button sound and request start; load save during delay window
-            SoundManager::Instance().PlaySound("button");
-
-            SaveData sd;
-            if (SaveManager::Load(sd) && game)
-            {
-                game->LoadFromSave(sd);
-            }
-            startRequested = true;
-            startDelay = kStartDelaySecs;
-        }
-    }
-
-    // update prev keys at end
-    for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) prevKeys[i] = keyState[i];
+    (void)keyState;
 }
 
 void MenuState::Update(float dt)
 {
-    if (startRequested)
-    {
-        // Count down; let button sound start playing while menu remains active
-        startDelay -= dt;
-        if (startDelay <= 0.0f)
-        {
-            // Stop menu audio, start gameplay music, and leave menu
-            SoundManager::Instance().StopAll();
-            SoundManager::Instance().PlayMusic("revolution");
+    (void)dt;
 
-            guiScene->labels.clear();
-            active = false;
-        }
+    float mx = 0.0f, my = 0.0f;
+    const SDL_MouseButtonFlags mouseButtons = SDL_GetMouseState(&mx, &my);
+    if (mouseButtons & SDL_BUTTON_LMASK)
+    {
+        if (btnNewGame) btnNewGame->HandleClick(mx, my);
+        if (btnContinue) btnContinue->HandleClick(mx, my);
     }
+
+    // Keep continue disabled if no save
+    if (btnContinue) btnContinue->SetDisabled(!HasSave());
 }
 
 void MenuState::Draw()
 {
-    SDL_SetRenderDrawColor(guiRenderer->renderer, 255, 255, 255, 255);
-    SDL_RenderClear(guiRenderer->renderer);
+    if (!guiRenderer) return;
 
-    guiScene->Draw(*guiRenderer);
+    const float screenW = 1500.0f;
+    const float titleX = (screenW * 0.5f) - 220.0f;
+    const float titleY = 100.0f;
+    guiRenderer->DrawText("Liberte Egalite Renault Coupe", Vector2(titleX, titleY));
 
-    SDL_RenderPresent(guiRenderer->renderer);
+    if (btnNewGame) btnNewGame->Draw(*guiRenderer);
+    if (btnContinue) btnContinue->Draw(*guiRenderer);
 }
 
-bool MenuState::IsActive() const { return active; }
+void MenuState::StartNewGame()
+{
+    // Reset request just toggles active state, does not affect gameplay or SDL
+    active = false;
+}
+
+void MenuState::ContinueGame()
+{
+    if (btnContinue && btnContinue->IsDisabled()) return;
+    if (!gameplay) return;
+
+    SaveData loaded{};
+    if (SaveManager::Load(loaded))
+    {
+        gameplay->LoadFromSave(loaded);
+        active = false;
+    }
+}
